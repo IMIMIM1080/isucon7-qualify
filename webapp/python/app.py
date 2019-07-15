@@ -10,12 +10,12 @@ import string
 import tempfile
 import time
 
-
 static_folder = pathlib.Path(__file__).resolve().parent.parent / 'public'
 icons_folder = static_folder / 'icons'
 app = flask.Flask(__name__, static_folder=str(static_folder), static_url_path='')
 app.secret_key = 'tonymoris'
 avatar_max_size = 1 * 1024 * 1024
+app.config['UPLOAD_FOLDER'] = './uploads'
 
 if not os.path.exists(str(icons_folder)):
     os.makedirs(str(icons_folder))
@@ -351,6 +351,8 @@ def post_profile():
             if ext not in ('.jpg', '.jpeg', '.png', '.gif'):
                 flask.abort(400)
 
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], 'image_1'))
+
             with tempfile.TemporaryFile() as f:
                 file.save(f)
                 f.flush()
@@ -368,9 +370,7 @@ def post_profile():
     if avatar_name and avatar_data:
         cur.execute("INSERT INTO image (name, data) VALUES (%s, _binary %s)", (avatar_name, avatar_data))
         cur.execute("UPDATE user SET avatar_icon = %s WHERE id = %s", (avatar_name, user_id))
-        img_f = open('./image_1', 'wb')
-        img_f.write(avatar_data)
-        img_f.close()
+
 
     if display_name:
         cur.execute("UPDATE user SET display_name = %s WHERE id = %s", (display_name, user_id))
